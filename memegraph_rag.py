@@ -3,15 +3,11 @@ from dotenv import load_dotenv
 load_dotenv()  # Ensure your .env file contains OPENAI_API_KEY
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
-# -------------------------------
 # 1. Initialize the Language Model
-# -------------------------------
 from langchain_openai import ChatOpenAI
 llm = ChatOpenAI(api_key=OPENAI_API_KEY, temperature=0, model_name="gpt-4-turbo")
 
-# -------------------------------
 # 2. Load and Split the PDF Document
-# -------------------------------
 from langchain_community.document_loaders import PyPDFLoader
 
 pdf_path = "sample.pdf"  # Update this path to your PDF file
@@ -25,9 +21,7 @@ text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=20
 chunks = text_splitter.split_text(full_text)
 print(f"Split text into {len(chunks)} chunks.")
 
-# -------------------------------
 # 3. Build the Knowledge Graph (GraphRAG)
-# -------------------------------
 combined_text = "\n".join(chunks)
 
 from langchain_community.cache import InMemoryCache
@@ -59,9 +53,7 @@ print("\nGraph Edges (with attributes):")
 for edge in graph._graph.edges(data=True):
     print(edge)
 
-# -------------------------------
 # 4. Customize the Entity Extraction Chain
-# -------------------------------
 from langchain.chains.llm import LLMChain
 from langchain.prompts import PromptTemplate
 
@@ -79,17 +71,13 @@ extraction_template = (
 extraction_prompt = PromptTemplate.from_template(extraction_template).partial(node_list=node_list_str)
 entity_extraction_chain = LLMChain(llm=llm, prompt=extraction_prompt)
 
-# -------------------------------
 # 5. Build the GraphQAChain and override its extraction chain
-# -------------------------------
 from langchain.chains import GraphQAChain
 qa_chain = GraphQAChain.from_llm(llm, graph=graph, verbose=True)
 # Override its entity_extraction_chain with our custom one.
 qa_chain.entity_extraction_chain = entity_extraction_chain
 
-# -------------------------------
 # 6. Interactive Q&A Loop
-# -------------------------------
 while True:
     user_query = input("Enter your question about the PDF (or type 'exit' to quit): ")
     if user_query.lower() == "exit":
